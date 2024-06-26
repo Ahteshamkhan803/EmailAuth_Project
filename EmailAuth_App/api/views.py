@@ -9,6 +9,7 @@ from EmailAuth_App.models import TempUser
 from EmailAuth_App.api.serializers import Register_serializer,otpVerification_serializer
 from .utils import generate_otp, send_otp
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -91,11 +92,10 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class home_view(APIView):
-     def get(self, request):
-          return render(request, 'home.html')
-     
 
+@login_required   
+def home_view(request):
+    return render(request, 'home.html', {'username': request.user})
 
 
 class otpExpired(APIView):
