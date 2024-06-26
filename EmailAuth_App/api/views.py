@@ -1,4 +1,5 @@
 
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -10,6 +11,7 @@ from EmailAuth_App.api.serializers import Register_serializer,otpVerification_se
 from .utils import generate_otp, send_otp
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 
@@ -78,18 +80,19 @@ class LoginView(APIView):
     def get(self, request):
         return render(request, 'login.html')
 
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        
-        # Authenticate user using email instead of username
-        user = authenticate(request, username=username , password=password)
-        
+    def post(self,request):
+        username= request.data.get('username')
+        password= request.data.get('password')
+        user= authenticate(request,username=username, password=password)
+
         if user is not None:
-            login(request, user)
-            return redirect('home')  # Replace 'home' with the name of your home view
-        else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+            login(request,user)
+            refresh= RefreshToken.for_user(user)
+            request.session['Token'] = str(refresh.access_token)
+            return redirect('home')
+        return render(request, 'login.html', {'errors' : 'Invalid credentials'})
+
+
 
 
 
